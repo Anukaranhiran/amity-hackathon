@@ -1,35 +1,3 @@
-/* ============================================================================
-   Shulker — Design System
-   ============================================================================
-   Dark SOC aesthetic with a full light-theme variant.
-
-   Contents
-   --------
-    1. Design tokens (dark, default)
-    2. Light theme override
-    3. Reset & base
-    4. App shell (sidebar · topbar · main · footer)
-    5. Typography
-    6. Panels, grids, KPI cards
-    7. Badges, chips, pills
-    8. Buttons, inputs, filters
-    9. Tables
-   10. Code blocks
-   11. Findings
-   12. Charts & progress
-   13. Timeline & event log
-   14. Empty states, skeletons, notices
-   15. Toasts & modals
-   16. Hero & feature cards
-   17. Templates (New Scan quick-start)
-   18. Utilities
-   19. Responsive & accessibility
-   ========================================================================== */
-
-
-/* ============================================================================
-   1. Design tokens (dark, default)
-   ========================================================================== */
 
 :root {
     /* -- Surfaces: page → raised chrome → panels → wells --------------------- */
