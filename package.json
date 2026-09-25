@@ -18,7 +18,8 @@
     "test": "npm run test --workspaces --if-present",
     "test:e2e": "node scripts/e2e.mjs",
     "dev": "bash scripts/dev.sh",
-    "dev:api": "bash scripts/dev.sh --no-web"
+    "dev:api": "bash scripts/dev.sh --no-web",
+    "start": "SHULKER_API_STANDALONE=1 node --experimental-strip-types --no-warnings apps/scan-api/src/server.ts"
   },
   "engines": {
     "node": ">=20.10"

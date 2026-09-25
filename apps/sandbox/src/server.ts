@@ -353,8 +353,8 @@ export function startSandbox(port = SANDBOX_PORT): Promise<{ server: Server; por
         try { send(res, status, { error: 'Internal error', detail: message }); } catch { /* socket gone */ }
       });
     });
-    // Bind loopback only — this is a deliberately vulnerable target.
-    server.listen(port, '127.0.0.1', () => {
+    // Loopback by default; BIND_HOST=0.0.0.0 for cloud platforms (still a demo target).
+    server.listen(port, process.env.BIND_HOST || '127.0.0.1', () => {
       resolve({ server, port: (server.address() as { port: number }).port });
     });
   });

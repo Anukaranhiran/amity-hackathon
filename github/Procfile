@@ -1,3 +1,0 @@
-web: cd apps/web && npm run dev
-api: cd apps/scan-api && npm run dev
-sandbox: cd apps/sandbox && npm run dev

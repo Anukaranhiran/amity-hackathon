@@ -891,8 +891,10 @@ const isDirectRun = process.argv[1] && import.meta.url === new URL(`file://${pro
 if (isDirectRun || process.env.SHULKER_API_STANDALONE === '1') {
   const envPort = Number(process.env.PORT);
   const listenPort = Number.isFinite(envPort) && envPort > 0 ? envPort : 8600;
-  createScanApiServer().listen(listenPort, '127.0.0.1', () => {
-    console.log(`[shulker] backend on http://127.0.0.1:${listenPort}`);
+  // Bind 0.0.0.0 so cloud platforms (Render, Railway, Docker) can route traffic.
+  const bindHost = process.env.BIND_HOST || '0.0.0.0';
+  createScanApiServer().listen(listenPort, bindHost, () => {
+    console.log(`[shulker] backend on http://${bindHost}:${listenPort}`);
     console.log(`[shulker] gemini: ${aiStatusNote().note}`);
   });
 }
