@@ -1,0 +1,253 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Shulker — Hackathon Pitch Deck</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: -apple-system, "Segoe UI", Helvetica, Arial, sans-serif; background: #333; }
+  .slide {
+    width: 1280px; height: 720px; page-break-after: always;
+    background: #060a12; color: #e8f0f8; position: relative; overflow: hidden;
+    padding: 60px 70px; margin: 0 auto 20px;
+  }
+  .slide::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 4px; background: linear-gradient(90deg, #38bdf8, #0ea5e9); }
+  h1 { font-size: 64px; font-weight: 800; letter-spacing: -0.03em; color: #fff; }
+  h2 { font-size: 38px; font-weight: 800; letter-spacing: -0.02em; color: #38bdf8; margin-bottom: 28px; }
+  .kicker { font-size: 15px; font-weight: 700; letter-spacing: 0.18em; text-transform: uppercase; color: #7dd3fc; margin-bottom: 10px; }
+  .accent { color: #38bdf8; }
+  .dim { color: #8fa3ba; }
+  ul { list-style: none; }
+  li { font-size: 21px; line-height: 1.5; margin-bottom: 14px; padding-left: 26px; position: relative; }
+  li::before { content: '▸'; position: absolute; left: 0; color: #38bdf8; font-weight: 800; }
+  .cols { display: flex; gap: 40px; }
+  .col { flex: 1; }
+  .card { background: #0d1524; border: 1px solid #1c2a40; border-radius: 14px; padding: 22px 26px; margin-bottom: 16px; }
+  .card h3 { font-size: 17px; color: #7dd3fc; margin-bottom: 6px; font-weight: 750; }
+  .card p { font-size: 14.5px; color: #a9bccf; line-height: 1.5; }
+  .big { font-size: 27px; font-weight: 750; line-height: 1.4; color: #dbeafe; }
+  .mono { font-family: "SF Mono", Menlo, Consolas, monospace; }
+  .pill { display: inline-block; border-radius: 999px; padding: 4px 14px; font-size: 13px; font-weight: 800; letter-spacing: .06em; }
+  .pill.crit { background: #450a0a; color: #fca5a5; border: 1px solid #7f1d1d; }
+  .pill.high { background: #431407; color: #fdba74; border: 1px solid #7c2d12; }
+  .pill.med  { background: #422006; color: #fde047; border: 1px solid #713f12; }
+  .pill.pass { background: #052e16; color: #86efac; border: 1px solid #14532d; }
+  .pill.info { background: #0c1a2e; color: #7dd3fc; border: 1px solid #1e3a5f; }
+  .footer { position: absolute; bottom: 26px; left: 70px; right: 70px; display: flex; justify-content: space-between; font-size: 12px; color: #4c5f75; }
+  table { border-collapse: collapse; width: 100%; }
+  th { text-align: left; font-size: 13px; letter-spacing: .08em; text-transform: uppercase; color: #7dd3fc; padding: 8px 12px; border-bottom: 1px solid #1c2a40; }
+  td { font-size: 16px; padding: 9px 12px; border-bottom: 1px solid #101b2d; color: #c3d2e2; }
+  .finding { display: flex; align-items: center; gap: 14px; padding: 10px 14px; border: 1px solid #1c2a40; border-radius: 10px; margin-bottom: 10px; background: #0b1220; }
+  .finding .mono { font-size: 15px; color: #e2eefb; }
+  .finding .sub { font-size: 12.5px; color: #6b7f95; }
+  pre.code { background: #0a101c; border: 1px solid #1c2a40; border-radius: 12px; padding: 20px 24px; font-size: 16px; line-height: 1.7; color: #9ecbff; }
+  .chain { display: flex; align-items: stretch; gap: 12px; margin: 20px 0; }
+  .chain .step { flex: 1; background: #0d1524; border: 1px solid #1c2a40; border-radius: 12px; padding: 16px; text-align: center; }
+  .chain .step .n { font-size: 26px; font-weight: 800; color: #38bdf8; display: block; margin-bottom: 6px; }
+  .chain .step .t { font-size: 14.5px; color: #c3d2e2; line-height: 1.4; }
+  .chain .arr { align-self: center; color: #38bdf8; font-size: 24px; font-weight: 800; }
+</style>
+</head>
+<body>
+
+<!-- SLIDE 1 — TITLE -->
+<div class="slide">
+  <div style="margin-top: 130px;">
+    <div class="kicker">AmiHacks · Track C</div>
+    <h1>Shulker</h1>
+    <p style="font-size: 30px; color: #9ecbff; margin-top: 8px; font-weight: 600;">AI-assisted zero-trust API vulnerability scanner</p>
+    <p style="font-size: 20px; color: #6b7f95; margin-top: 22px; max-width: 900px; line-height: 1.6;">
+      It doesn't guess vulnerabilities. It <span class="accent" style="font-weight:700;">proves them</span> —
+      with reproducible HTTP evidence — in under 30 seconds.
+    </p>
+  </div>
+  <div style="position:absolute; bottom:110px; left:70px;" class="row">
+    <span class="pill info">AI hypotheses · deterministic verdicts</span>&nbsp;
+    <span class="pill info">Zero backend dependencies</span>&nbsp;
+    <span class="pill info">Bounded &amp; redacted by design</span>
+  </div>
+  <div class="footer"><span>Shulker — Zero-Trust API Security</span><span>hackathon demo · 2026</span></div>
+</div>
+
+<!-- SLIDE 2 — PROBLEM -->
+<div class="slide">
+  <div class="kicker">The problem</div>
+  <h2>APIs trust credentials too much — and that's the breach</h2>
+  <div class="cols">
+    <div class="col">
+      <ul>
+        <li>Attackers don't break crypto. They <b>log in legitimately</b>, then change an ID: <span class="mono accent">/orders/101 → /orders/102</span> — and read someone else's data.</li>
+        <li>Admin functions are hidden in the UI but <b>unprotected on the server</b> — one <span class="mono">PATCH</span> and a user becomes admin.</li>
+        <li>APIs return full database rows — <span class="mono">passwordHash</span> included — trusting clients to "ignore" extra fields.</li>
+        <li>Mobile &amp; SPA frontends are <b>not security boundaries</b>. Every hidden capability is directly callable.</li>
+      </ul>
+    </div>
+    <div class="col">
+      <div class="card"><h3>OWASP API Top 10 (2023)</h3><p>API1 BOLA, API3 Data Exposure, API4 Rate Limiting, API5 BFLA — the authorization-flaw family behind most real API breaches.</p></div>
+      <div class="card"><h3>Why scanners miss them</h3><p>Classic DAST maps pages, not object ownership. Pentesters cost thousands per engagement. LLM scanners <b>hallucinate findings</b>.</p></div>
+    </div>
+  </div>
+  <div class="footer"><span>Shulker</span><span>02</span></div>
+</div>
+
+<!-- SLIDE 3 — SOLUTION -->
+<div class="slide">
+  <div class="kicker">The solution</div>
+  <h2>AI proposes. Code proves. Zero hallucinations.</h2>
+  <div class="chain">
+    <div class="step"><span class="n">1</span><span class="t"><b>Hypothesize</b><br>Gemini reads the contract and ranks attack ideas</span></div>
+    <div class="arr">→</div>
+    <div class="step"><span class="n">2</span><span class="t"><b>Verify</b><br>Detectors replay real HTTP with two authenticated identities</span></div>
+    <div class="arr">→</div>
+    <div class="step"><span class="n">3</span><span class="t"><b>Evidence</b><br>Redacted request/response pairs + curl PoC per finding</span></div>
+    <div class="arr">→</div>
+    <div class="step"><span class="n">4</span><span class="t"><b>Report</b><br>Severity with reason · HTML/MD/JSON · CI gate</span></div>
+  </div>
+  <ul style="margin-top: 18px;">
+    <li>A finding <b>only exists if a reproducible HTTP exchange proves it</b> — LLM output can never become a verdict.</li>
+    <li>Runs fully without AI (deterministic rules are the default path — the demo needs no API keys).</li>
+  </ul>
+  <div class="footer"><span>Shulker</span><span>03</span></div>
+</div>
+
+<!-- SLIDE 4 — DEMO FINDINGS -->
+<div class="slide">
+  <div class="kicker">Live demo result · ShulkerLab sandbox</div>
+  <h2>One scan. Five proven breaches. 30 seconds.</h2>
+  <div class="finding"><span class="pill crit">CRITICAL</span><span class="mono">PATCH /users/{userId}/role</span><span class="sub">BFLA — regular user escalates own role to admin</span></div>
+  <div class="finding"><span class="pill high">HIGH</span><span class="mono">GET /vehicles/{vehicleId}</span><span class="sub">BOLA — Bob reads Alice's vehicle by iterating the ID</span></div>
+  <div class="finding"><span class="pill high">HIGH</span><span class="mono">GET /service-records/{recordId}</span><span class="sub">BOLA — cross-user service records exposed</span></div>
+  <div class="finding"><span class="pill high">HIGH</span><span class="mono">GET /invoices/{invoiceId}</span><span class="sub">BOLA — any user's invoices readable</span></div>
+  <div class="finding"><span class="pill high">HIGH</span><span class="mono">GET /users/{userId}</span><span class="sub">Excessive Data Exposure — passwordHash in response</span></div>
+  <div class="finding"><span class="pill med">MEDIUM</span><span class="mono">POST /auth/login</span><span class="sub">Weak rate limiting — no throttling on credential endpoints</span></div>
+  <p style="margin-top:14px;" class="dim">Every token redacted. Every finding carries expected-vs-actual behavior, evidence, remediation, and a copy-paste curl PoC.</p>
+  <div class="footer"><span>Shulker</span><span>04</span></div>
+</div>
+
+<!-- SLIDE 5 — HOW IT'S BUILT -->
+<div class="slide">
+  <div class="kicker">Architecture</div>
+  <h2>Built like a security tool should be built</h2>
+  <div class="cols">
+    <div class="col">
+      <ul>
+        <li><b>Monorepo, 6 workspaces</b> — scanner-core, shared, sandbox, scan-api, web, CLI.</li>
+        <li><b>Zero backend npm dependencies</b> — pure Node + <span class="mono">node:sqlite</span>. A security tool that doesn't blindly trust its supply chain.</li>
+        <li><b>One HTTP chokepoint</b> — SafeHttpClient enforces timeouts, 512 KB caps, no redirects, redaction — for every request, no side doors.</li>
+        <li><b>SSE live streaming</b> — watch the scan think, phase by phase.</li>
+      </ul>
+    </div>
+    <div class="col">
+      <pre class="code mono">POST /api/scan
+  ↓ validateTarget + consent gates
+ScanEngine
+  parse → authenticate → model
+  → BOLA · BFLA · exposure · rate
+  → findings (severity + reason)
+  ↓ SSE events
+Dashboard · CLI · Reports</pre>
+    </div>
+  </div>
+  <div class="footer"><span>Shulker</span><span>05</span></div>
+</div>
+
+<!-- SLIDE 6 — SAFETY -->
+<div class="slide">
+  <div class="kicker">Responsible scanning</div>
+  <h2>A scanner that can't be abused as a weapon</h2>
+  <div class="cols">
+    <div class="col">
+      <ul>
+        <li><b>Hard request budgets</b> — 10–400 requests, enforced in the engine. It cannot flood or DoS a target.</li>
+        <li><b>Local-only by default</b> — public targets require three deliberate consents (Settings toggle + per-scan authorization checkbox + server validation).</li>
+        <li><b>Token redaction everywhere</b> — JWTs and keys never appear in evidence, reports, logs or the UI (regex-swept in tests).</li>
+      </ul>
+    </div>
+    <div class="col">
+      <ul>
+        <li><b>Polite rate-limit probes</b> — a bounded burst, never a flood.</li>
+        <li><b>External mode, live-proven</b> — scanned the public Swagger Petstore over HTTPS with a static API key: 19 endpoints, key fully redacted.</li>
+        <li><b>Built-in templates</b> — Gemini / OpenAI / GitHub / Stripe contracts generated in memory; one click fills target + auth + spec.</li>
+      </ul>
+    </div>
+  </div>
+  <div class="footer"><span>Shulker</span><span>06</span></div>
+</div>
+
+<!-- SLIDE 7 — PRODUCT -->
+<div class="slide">
+  <div class="kicker">Product surface</div>
+  <h2>Full platform, not a script</h2>
+  <div class="cols">
+    <div class="col">
+      <div class="card"><h3>Operator dashboard</h3><p>KPIs with scan-over-scan deltas, severity donut, attack-surface graph, coverage report, inventory from OpenAPI/Postman/HAR/manual, live event stream.</p></div>
+      <div class="card"><h3>Guided New Scan wizard</h3><p>Sandbox or real API → templates → discovery preview (protected vs public endpoints) → auth (API key / Bearer / Basic / custom headers) → run.</p></div>
+    </div>
+    <div class="col">
+      <div class="card"><h3>Findings worth reading</h3><p>Severity, expected vs actual behavior, redacted evidence, remediation guidance, copy-PoC — built for developers, not just scanners.</p></div>
+      <div class="card"><h3>CLI = CI/CD gate</h3><p class="mono" style="margin-top:6px;">shulker scan --fail-on high<br></p><p>Same engine, same findings — fail the pipeline that introduces a BOLA.</p></div>
+    </div>
+  </div>
+  <div class="footer"><span>Shulker</span><span>07</span></div>
+</div>
+
+<!-- SLIDE 8 — PROOF OF QUALITY -->
+<div class="slide">
+  <div class="kicker">Engineering rigor</div>
+  <h2>60-check verification gate, green after every change</h2>
+  <div class="cols">
+    <div class="col">
+      <ul>
+        <li><b>End-to-end:</b> boots the sandbox in-process, runs a real scan, asserts every finding class.</li>
+        <li><b>Security sweeps:</b> serialized regex checks — no raw JWT, no password hashes anywhere in output.</li>
+        <li><b>Authorization matrix:</b> external refuse/allow paths, Host-header injection blocked, all auth-header builders tested.</li>
+        <li><b>Template matrix:</b> all 4 generated specs validated as OpenAPI 3.0.3 and parser-accepted.</li>
+      </ul>
+    </div>
+    <div class="col">
+      <pre class="code mono">tsc --noEmit ..... clean ×3
+vite build ....... ✓ 76 kB gz
+e2e .............. 60/60 ✓
+live demo ........ ✓ verified</pre>
+      <p class="dim" style="margin-top:12px; font-size:15px;">Plus 11 real bugs found, root-caused and documented — from flex-stretch icon bugs to workspace relinking — each with the lesson learned.</p>
+    </div>
+  </div>
+  <div class="footer"><span>Shulker</span><span>08</span></div>
+</div>
+
+<!-- SLIDE 9 — WHY WE WIN -->
+<div class="slide">
+  <div class="kicker">Differentiation</div>
+  <h2>Why Shulker wins</h2>
+  <table>
+    <tr><th style="width:32%;"></th><th>LLM scanners</th><th>Classic DAST</th><th style="color:#38bdf8;">Shulker</th></tr>
+    <tr><td><b>Verdicts</b></td><td class="dim">Hallucinated</td><td class="dim">Status-code guesses</td><td style="color:#e2eefb;">HTTP-proven evidence</td></tr>
+    <tr><td><b>Auth-aware</b></td><td class="dim">No</td><td class="dim">Partial</td><td style="color:#e2eefb;">Two-identity ownership model</td></tr>
+    <tr><td><b>Safe on prod</b></td><td class="dim">Unbounded</td><td class="dim">Flooding</td><td style="color:#e2eefb;">Hard budgets + 3 consent gates</td></tr>
+    <tr><td><b>Setup</b></td><td class="dim">API key needed</td><td class="dim">Heavy install</td><td style="color:#e2eefb;">npm run dev — zero deps, zero keys</td></tr>
+    <tr><td><b>CI story</b></td><td class="dim">—</td><td class="dim">—</td><td style="color:#e2eefb;">CLI --fail-on severity gate</td></tr>
+  </table>
+  <div class="footer"><span>Shulker</span><span>09</span></div>
+</div>
+
+<!-- SLIDE 10 — CLOSE -->
+<div class="slide">
+  <div style="margin-top: 110px;">
+    <div class="kicker">The takeaway</div>
+    <p class="big" style="font-size: 40px; max-width: 1100px;">
+      Authentication asks <span class="dim">"who are you?"</span><br>
+      Shulker asks the question the server forgot:<br>
+      <span class="accent" style="font-weight:800;">"may you see <u>this</u>?"</span>
+    </p>
+    <div style="margin-top: 60px; display:flex; gap:14px;">
+      <span class="pill pass">5 proven breaches in 30 s</span>
+      <span class="pill info">zero hallucinations</span>
+      <span class="pill info">zero backend dependencies</span>
+      <span class="pill info">one-command demo</span>
+    </div>
+  </div>
+  <div class="footer"><span>Shulker — Zero-Trust API Security · AmiHacks Track C</span><span>Thank you</span></div>
+</div>
+
+</body>
+</html>
