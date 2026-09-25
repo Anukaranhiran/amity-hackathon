@@ -1,0 +1,300 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Shulker — Complete Technical Guide (Basics → Advanced)</title>
+<style>
+  * { box-sizing: border-box; }
+  body { font-family: -apple-system, "Segoe UI", Helvetica, Arial, sans-serif; color: #16202e; font-size: 12.5px; line-height: 1.6; margin: 0; background: #fff; }
+  .page { page-break-after: always; padding: 44px 52px; }
+  .page:last-child { page-break-after: auto; }
+  h1 { font-size: 28px; margin: 0 0 4px; letter-spacing: -0.02em; }
+  h2 { font-size: 18px; margin: 0 0 12px; color: #0b5cad; border-bottom: 2px solid #0b5cad; padding-bottom: 5px; }
+  h3 { font-size: 13.5px; margin: 15px 0 6px; color: #123; }
+  p { margin: 6px 0; }
+  .sub { color: #5a6b80; font-size: 13.5px; margin: 0 0 18px; }
+  .banner { background: #0d1b2a; color: #e8f1fa; border-radius: 10px; padding: 22px 26px; margin-bottom: 18px; }
+  .banner h1 { color: #7cc4ff; }
+  .banner .sub { color: #9fb6cc; }
+  table { border-collapse: collapse; width: 100%; margin: 8px 0 14px; font-size: 11px; }
+  th { background: #eef4fa; text-align: left; }
+  th, td { border: 1px solid #c9d6e2; padding: 5px 8px; vertical-align: top; }
+  code, .mono { font-family: "SF Mono", Menlo, Consolas, monospace; font-size: 10.5px; background: #f0f4f8; border: 1px solid #dbe4ec; border-radius: 4px; padding: 1px 5px; }
+  pre { font-family: "SF Mono", Menlo, Consolas, monospace; font-size: 10px; background: #0d1b2a; color: #d7e5f2; border-radius: 8px; padding: 12px 14px; overflow: hidden; white-space: pre-wrap; }
+  ul, ol { margin: 4px 0 10px; padding-left: 20px; }
+  li { margin: 3px 0; }
+  .cols2 { column-count: 2; column-gap: 26px; }
+  .box { border: 1px solid #c9d6e2; border-radius: 8px; padding: 10px 14px; margin: 10px 0; page-break-inside: avoid; }
+  .box.blue { background: #eef4fa; } .box.green { background: #f0f9f3; } .box.amber { background: #fdf7ec; }
+  .box b.t { display: block; margin-bottom: 4px; }
+  .kpi { display: flex; gap: 10px; margin: 12px 0; }
+  .kpi div { flex: 1; border: 1px solid #c9d6e2; border-radius: 8px; padding: 10px 12px; text-align: center; }
+  .kpi .n { font-size: 20px; font-weight: 800; color: #0b5cad; display: block; }
+  .flow { background: #eef4fa; border: 1px solid #c9d6e2; border-radius: 8px; padding: 10px 14px; font-family: Menlo, monospace; font-size: 10px; margin: 8px 0; page-break-inside: avoid; }
+  .foot { margin-top: 12px; color: #8194a8; font-size: 9.5px; border-top: 1px solid #dbe4ec; padding-top: 6px; }
+  .def { display: grid; grid-template-columns: 130px 1fr; gap: 6px 12px; font-size: 11.5px; margin: 8px 0; }
+  .def dt { font-weight: 700; color: #0b5cad; }
+  .def dd { margin: 0; }
+</style>
+</head>
+<body>
+
+<!-- ============ COVER ============ -->
+<div class="page">
+  <div class="banner">
+    <h1>Shulker — Complete Technical Guide</h1>
+    <div class="sub">From security fundamentals to the full implementation · Hackathon study companion</div>
+  </div>
+
+  <h2>What this document covers</h2>
+  <div class="def">
+    <dt>Part 1 — Theory</dt><dd>APIs, authentication vs authorization, OWASP API Top 10, the vulnerability classes Shulker targets, redaction, rate limiting.</dd>
+    <dt>Part 2 — Build</dt><dd>Every technology used and <i>why</i>: Node zero-dep backend, TypeScript, SQLite, SSE, React, Gemini.</dd>
+    <dt>Part 3 — The scanner</dt><dd>Engine phases, SafeHttpClient chokepoint, how each detector actually works, AI + deterministic verification.</dd>
+    <dt>Part 4 — Product</dt><dd>Dashboard, scan wizard, templates, external-target mode, CLI, reports.</dd>
+    <dt>Part 5 — Quality</dt><dd>The 60-check test gate, bugs we hit and fixed, verification philosophy.</dd>
+  </div>
+
+  <div class="kpi">
+    <div><span class="n">6</span>workspaces</div>
+    <div><span class="n">4+1</span>vuln classes + controls</div>
+    <div><span class="n">60</span>e2e checks</div>
+    <div><span class="n">0</span>backend deps</div>
+    <div><span class="n">3</span>consent gates</div>
+  </div>
+
+  <div class="box blue"><b class="t">The one-sentence pitch</b>
+  Shulker scans web APIs for authorization flaws the way attackers actually exploit them — it takes a valid low-privilege credential and <b>proves</b> with reproducible HTTP evidence whether it can read another user's data, reach admin functions, or extract hidden fields — using AI only for hypotheses and deterministic code for verdicts.</div>
+
+  <h2>Part 1 · Security theory you must know</h2>
+
+  <h3>1.1 What an API is, and why it is the new attack surface</h3>
+  <p>An API (Application Programming Interface) is a contract that lets machines talk: clients send HTTP requests like <code>GET /users/42</code> and receive structured JSON. Modern apps are hybrids of many APIs — mobile apps, SPAs, partner integrations, microservices. Unlike a website, an API has <b>no UI to hide behind</b>: every capability the frontend uses is directly callable by anyone with the URL and a credential. The frontend is not a security boundary; the server is.</p>
+
+  <h3>1.2 Authentication ≠ Authorization (the core distinction)</h3>
+  <table>
+    <tr><th></th><th>Authentication (AuthN)</th><th>Authorization (AuthZ)</th></tr>
+    <tr><td><b>Question</b></td><td>Who are you?</td><td>May you do this?</td></tr>
+    <tr><td><b>Mechanism</b></td><td>Password, API key, JWT, OAuth token</td><td>Ownership checks, role checks, ACLs</td></tr>
+    <tr><td><b>Failure class</b></td><td>Credential theft, token leakage</td><td><b>BOLA, BFLA</b> — the classes Shulker detects</td></tr>
+  </table>
+  <p><b>The breach pattern that powers this whole project:</b> attackers rarely break cryptography. They <i>authenticate successfully</i> as a normal user, then exploit missing authorization — reading object IDs that belong to someone else, or calling admin functions the UI never showed them. Authentication says "this is Alice"; authorization was supposed to say "Alice may only see Alice's invoices" — and often nobody implemented that second check server-side.</p>
+
+  <h3>1.3 The vulnerability classes Shulker detects</h3>
+  <table>
+    <tr><th>Class</th><th>OWASP</th><th>Definition</th><th>Concrete attack</th></tr>
+    <tr><td><b>BOLA</b> — Broken Object-Level Authorization</td><td>API1:2023</td><td>The server does not verify that the requested object belongs to the caller.</td><td><code>GET /vehicles/101</code> → own car, 200. <code>GET /vehicles/102</code> → <i>someone else's car, also 200</i>. Attackers enumerate IDs and scrape every user's data (aka IDOR).</td></tr>
+    <tr><td><b>BFLA</b> — Broken Function-Level Authorization</td><td>API5:2023</td><td>Privileged functions are reachable by non-privileged callers.</td><td><code>PATCH /users/42/role {"role":"admin"}</code> sent as a normal user — the admin panel was hidden in the UI, but the server never checked the role.</td></tr>
+    <tr><td><b>Excessive Data Exposure</b></td><td>API3:2023</td><td>Responses return more fields than the client needs — full DB rows including sensitive ones.</td><td><code>GET /users/42</code> returns <code>passwordHash</code>, internal flags. The mobile app "never shows" them — attackers read raw HTTP.</td></tr>
+    <tr><td><b>Weak Rate Limiting</b></td><td>API4:2023</td><td>No throttling on sensitive operations.</td><td>Unlimited login attempts → credential stuffing; unlimited ID probes → BOLA at industrial scale; OTP brute-force.</td></tr>
+    <tr><td><b>Security Controls (positive)</b></td><td>—</td><td>Checks that <i>pass</i>: the server does enforce the rule.</td><td>Admin endpoint returns 403 for regular users → recorded as PASS, giving defenders an attested baseline.</td></tr>
+  </table>
+
+  <h3>1.4 Supporting theory used in the build</h3>
+  <ul>
+    <li><b>JWT (JSON Web Token)</b> — signed token of form <code>header.payload.signature</code>. Carries identity claims; the scanner extracts it at login and replays it as <code>Authorization: Bearer …</code>. Its recognizable shape (<code>eyJ…</code>) is also what the redaction engine hunts for.</li>
+    <li><b>API keys</b> — static per-client secrets in a header (<code>x-api-key</code>, <code>x-goog-api-key</code>). Simpler than JWT but long-lived — leakage is high-impact, hence redaction and header-based injection in Shulker.</li>
+    <li><b>OpenAPI 3.0.3</b> — machine-readable API contract: <code>paths</code>, operations, parameters, <code>components.securitySchemes</code>. Shulker's parser derives endpoints <i>and</i> expected response schemas from it (the schema is the baseline for exposure detection).</li>
+    <li><b>Redaction</b> — replacing secrets with <code>&lt;REDACTED&gt;</code> before persistence. A scanner stores evidence; if it stored raw tokens it would itself become a breach vector.</li>
+    <li><b>Rate limiting</b> — server-side throttling (429 Too Many Requests). Detected politely: Shulker sends a bounded probe burst and observes.</li>
+    <li><b>IDOR</b> — Insecure Direct Object Reference, the classic pre-2023 name for BOLA.</li>
+  </ul>
+  <div class="foot">Shulker · Complete Technical Guide · Part 1 of 5</div>
+</div>
+
+<!-- ============ PART 2 BUILD ============ -->
+<div class="page">
+  <h2>Part 2 · The stack — every technology and why</h2>
+
+  <h3>2.1 Monorepo layout (npm workspaces)</h3>
+  <pre>shulker/
+├── apps/
+│   ├── sandbox/       ShulkerLab — deliberately vulnerable demo API (port 8700)
+│   ├── scan-api/      Backend: REST + SSE, scan orchestration, reports (port 8600)
+│   ├── web/           React + Vite operator dashboard (port 5173)
+│   └── cli/           `shulker scan` — same engine, CI gate with --fail-on
+├── packages/
+│   ├── scanner-core/  Scan engine, SafeHttpClient, detectors, AI module, parser
+│   └── shared/        Types, severity ordering, redaction engine
+├── scripts/           dev.sh · e2e.mjs (60 checks) · verify-demo.mjs
+└── data/              SQLite DB + generated reports</pre>
+  <p><b>Why a monorepo?</b> One repo, one `npm install`, one `npm run dev` — critical for a hackathon demo. Workspaces give each package its own <code>package.json</code> while sharing a single lockfile and node_modules, and shared types flow between engine, server and UI with zero publish steps.</p>
+
+  <h3>2.2 Technology choices and their reasons</h3>
+  <table>
+    <tr><th>Layer</th><th>Choice</th><th>Why (the honest engineering reason)</th></tr>
+    <tr><td>Language</td><td>TypeScript, everywhere</td><td>One language across engine, server, sandbox, UI. Shared types mean an engine change that breaks the server fails at <i>compile time</i>, not during the demo.</td></tr>
+    <tr><td>Runtime</td><td>Node ≥ 20.10 with <code>--experimental-strip-types</code></td><td>Runs TS directly — <b>no build step for the backend</b>. Edit and restart. Also enables the zero-dependency decision below.</td></tr>
+    <tr><td>HTTP server</td><td>Raw <code>node:http</code> + a hand-rolled route table</td><td>Total control over SSE streaming, CORS and error shape. Express would add a dependency without adding capability we need.</td></tr>
+    <tr><td>Database</td><td><code>node:sqlite</code> (built into Node)</td><td>Persistent scans/findings/evidence with <b>zero setup</b> — no Postgres container to run on judge Wi-Fi. Single-file DB in <code>data/</code>.</td></tr>
+    <tr><td>Zero-dep backend</td><td>No npm runtime packages at all</td><td>A security tool must not blindly trust its supply chain. Every line that touches target HTTP, crypto or storage is our own auditable code.</td></tr>
+    <tr><td>Live updates</td><td>Server-Sent Events (SSE)</td><td>Scan progress is one-way server→client. SSE gives auto-reconnect and event replay over plain HTTP — simpler than WebSockets and observable with curl.</td></tr>
+    <tr><td>Frontend</td><td>React 19 + Vite, hand-written CSS</td><td>Fast HMR while iterating; ~76 kB gzipped bundle; a custom dark "SOC console" design system with CSS variables instead of a component library.</td></tr>
+    <tr><td>AI</td><td>Google Gemini (REST)</td><td>Hypothesis generation only. Deliberately <i>not</i> in the verdict path — see §3.5.</td></tr>
+    <tr><td>Testing</td><td><code>node:test</code> + custom e2e script</td><td>The e2e boots the sandbox in-process, runs a real scan, and asserts 60 checks including redaction sweeps and the authorization matrix.</td></tr>
+  </table>
+
+  <h3>2.3 Why this stack wins a hackathon demo</h3>
+  <ul>
+    <li><code>npm install && npm run dev</code> → everything up in ~10 seconds, no services.</li>
+    <li>No API keys required to demo (AI is optional; deterministic rules run without Gemini).</li>
+    <li>Works fully offline except AI hypotheses and external-target scans.</li>
+  </ul>
+
+  <h3>2.4 The safety architecture (what makes it a responsible scanner)</h3>
+  <table>
+    <tr><th>Guard</th><th>Mechanism</th></tr>
+    <tr><td>Bounded requests</td><td>Engine counts every request; <code>budget</code> (10–400) and <code>rateLimitProbeCount</code> (5–25) are hard caps. A scanner that can DoS its target is itself a vulnerability.</td></tr>
+    <tr><td>Timeouts</td><td>Every fetch wrapped in AbortController (2–30 s).</td></tr>
+    <tr><td>Response caps</td><td>512 KB streaming truncation — no unbounded memory.</td></tr>
+    <tr><td>No redirects</td><td><code>redirect: 'manual'</code> — evidence reflects the real first response.</td></tr>
+    <tr><td>Redaction</td><td>JWTs, password fields, token-shaped strings → <code>&lt;REDACTED&gt;</code> before DB/evidence/reports/SSE.</td></tr>
+    <tr><td>Target gate</td><td><code>validateTarget(url, allowExternal)</code> — loopback/private always OK; public only with external mode.</td></tr>
+    <tr><td>Consent gates</td><td>(1) Settings toggle, (2) per-scan authorization checkbox, (3) server-side validation of both.</td></tr>
+    <tr><td>Header hygiene</td><td>User-supplied headers cannot override <code>Host</code> / <code>Content-Length</code> (injection blocked + tested).</td></tr>
+  </table>
+  <div class="foot">Shulker · Complete Technical Guide · Part 2 of 5</div>
+</div>
+
+<!-- ============ PART 3 SCANNER ============ -->
+<div class="page">
+  <h2>Part 3 · Inside the scanner</h2>
+
+  <h3>3.1 Scan lifecycle (engine phases)</h3>
+  <div class="flow">POST /api/scan ─▶ validateTarget + confirmAuthorized + buildAuthHeaders
+  └▶ ScanEngine.run():
+     parse          Parse OpenAPI/Postman/HAR → endpoints + auth + schemas
+     authenticate   Login actors (Alice/Bob) OR static credentials (API key/bearer)
+     hypotheses     Resource/ownership discovery → AI hypotheses (optional)
+     testing        BOLA · BFLA · Exposure · Rate-limit detectors (bounded)
+     findings       Correlate, dedupe, assign severity + reason
+     done           Persist result, emit SSE SCAN_DONE, reports on demand</div>
+
+  <h3>3.2 SafeHttpClient — the single HTTP chokepoint</h3>
+  <p>Every request the scanner makes passes through one class that enforces timeout, size cap, no-redirect and redaction of anything stored. <code>defaultHeaders</code> injects user static credentials once so <b>every</b> detector inherits the auth context automatically. This chokepoint is why budget and safety guarantees are enforceable at all — there is no side door around it.</p>
+
+  <h3>3.3 How each detector works (the real logic)</h3>
+  <table>
+    <tr><th>Detector</th><th>Procedure</th><th>Verdict rule</th></tr>
+    <tr><td><b>BOLA</b></td><td>1. Discover list endpoints and object ids per actor. 2. Record which objects belong to Alice. 3. Replay Alice's read/update requests using Bob's token on Alice's object ids.</td><td>200/OK with the <i>other</i> actor's token → <b>confirmed</b>, with both responses as evidence and a curl PoC.</td></tr>
+    <tr><td><b>BFLA</b></td><td>Identify privileged operations (admin paths, role-mutating writes). Call them as a regular user, and with tampered role claims.</td><td>Success status as non-admin → <b>confirmed</b> (CRITICAL if role escalation). 403 → recorded as passing control.</td></tr>
+    <tr><td><b>Exposure</b></td><td>Diff actual response JSON fields against the OpenAPI schema for the operation; scan for sensitive patterns (<code>passwordHash</code>, tokens, PII names).</td><td>Sensitive undocumented field present → <b>confirmed</b> HIGH with the offending payload as evidence.</td></tr>
+    <tr><td><b>Rate limit</b></td><td>Send ≤ 25 rapid, polite probes at one sensitive endpoint (e.g. login). Observe statuses, headers (<code>RateLimit-*</code>), latency trends.</td><td>No 429 / no backoff signal across the burst → <b>potential</b> MEDIUM (deliberately conservative).</td></tr>
+  </table>
+
+  <h3>3.4 Severity: deterministic, explainable</h3>
+  <p>Findings carry <code>severity</code> + <code>severityReason</code> computed by rules (type × confirmability × sensitivity of leaked field × privilege gained), never by the LLM. CI users can gate with <code>shulker scan --fail-on high</code> and trust exit codes.</p>
+
+  <h3>3.5 AI + deterministic verification (the flagship idea)</h3>
+  <div class="box green"><b class="t">Why the AI never has the final say</b>
+  LLMs hallucinate; a vulnerability scanner that reports hallucinated findings is worse than useless. Shulker's division of labor: <b>Gemini</b> reads the spec and ranks <i>which</i> endpoints/objects look juicy (hypotheses, prioritization); <b>code</b> then tries each hypothesis with real HTTP and either produces evidence or drops it. Result: zero hallucinated findings, by construction. Without a Gemini key the scanner still runs fully on deterministic rules.</div>
+
+  <h3>3.6 Contract discovery & templates</h3>
+  <ul>
+    <li><b>Imports</b> — OpenAPI (JSON/YAML), Postman Collections, HAR files, manual entry, spec-by-URL — all parsed into one endpoint model with auth classification.</li>
+    <li><b>Quick API Templates</b> — one click for Gemini / OpenAI / GitHub / Stripe generates a valid OpenAPI 3.0.3 spec in memory, auto-fills target + auth (e.g. Gemini → <code>x-goog-api-key</code>), and shows a view/copy/download preview. No file wrangling in the demo.</li>
+  </ul>
+  <div class="foot">Shulker · Complete Technical Guide · Part 3 of 5</div>
+</div>
+
+<!-- ============ PART 4 PRODUCT ============ -->
+<div class="page">
+  <h2>Part 4 · The product surface</h2>
+
+  <h3>4.1 Dashboard pages</h3>
+  <table>
+    <tr><th>Page</th><th>What it does</th></tr>
+    <tr><td>Overview</td><td>KPIs with deltas vs previous scan, scan status timeline, recent findings, severity donut, top vulnerability types, activity feed.</td></tr>
+    <tr><td>New Scan</td><td>Scan mode (ShulkerLab sandbox / Real API) → Quick Templates → target + external toggle + warning → contract source → discovery preview (protected vs public counts) → auth (None / API Key / Bearer / Basic + custom headers) → profile (budget, probes, AI) → authorization → Run. Live SSE monitor with phase timeline.</td></tr>
+    <tr><td>Findings</td><td>Per finding: severity, title, affected endpoint, expected vs actual behavior, redacted evidence, remediation, copy-PoC.</td></tr>
+    <tr><td>Evidence</td><td>Raw (redacted) request/response exchanges behind every finding.</td></tr>
+    <tr><td>Reports</td><td>HTML / Markdown / JSON generation and download.</td></tr>
+    <tr><td>Discovery & Intelligence</td><td>API Inventory (merged sources), Attack Surface graph, Coverage report, Resource Graph, Activity feed.</td></tr>
+    <tr><td>Settings</td><td>Target security (local-only, confirmation, redaction, Allow External Targets), scanner defaults, AI status, history clear.</td></tr>
+  </table>
+
+  <h3>4.2 One-click demo flow (what judges see)</h3>
+  <div class="flow">New Scan → Local Sandbox → Run Demo Scan
+  ~30s later: 5 CONFIRMED — CRITICAL BFLA role escalation · 3× HIGH BOLA
+  (vehicles/service-records/invoices across users) · HIGH exposure (passwordHash)
+  + 1 POTENTIAL (no rate limiting on /auth/login). Every token redacted.</div>
+
+  <h3>4.3 External authorized mode</h3>
+  <ul>
+    <li>Toggle <b>Allow External Targets</b> + per-scan authorization checkbox → public HTTPS targets and public spec URLs accepted.</li>
+    <li>Static auth: API key (custom header name), Bearer, Basic — injected into every request, redacted everywhere.</li>
+    <li>Live-verified against the public Swagger Petstore: 19 endpoints discovered, 8 tested, API key never stored in plaintext.</li>
+    <li>Templates make the flow file-less: pick provider → key from provider console → scan.</li>
+  </ul>
+
+  <h3>4.4 CLI (same engine, CI gate)</h3>
+  <pre>shulker scan \
+  --target http://127.0.0.1:8700 \
+  --openapi http://127.0.0.1:8700/openapi.json \
+  --api-key YOUR_KEY \
+  --fail-on high        # exit 1 if any high/critical finding → blocks the pipeline</pre>
+  <p>Terminal and dashboard report <b>identical findings</b> from the same engine run — the CLI is the DevOps story: scan in CI, fail PRs that introduce BOLA.</p>
+
+  <h3>4.5 REST API (backend surface)</h3>
+  <table>
+    <tr><th>Route</th><th>Purpose</th></tr>
+    <tr><td><code>POST /api/scan</code></td><td>Start scan — target, spec/useSandboxSpec, auth{}, budget, allowExternal, confirmAuthorized</td></tr>
+    <tr><td><code>POST /api/demo</code></td><td>One-click local ShulkerLab scan</td></tr>
+    <tr><td><code>GET /api/scans/:id · /events</code></td><td>Result JSON · SSE live stream (with replay)</td></tr>
+    <tr><td><code>POST /api/reports</code></td><td>Generate html/md/json report</td></tr>
+    <tr><td><code>POST /api/inventory/import|import-url|manual</code></td><td>Contract imports → inventory</td></tr>
+    <tr><td><code>GET /api/graph · /coverage · /activity</code></td><td>Attack-surface graph, coverage, activity</td></tr>
+    <tr><td><code>GET/POST /api/settings</code></td><td>Defaults + external-targets toggle</td></tr>
+  </table>
+  <div class="foot">Shulker · Complete Technical Guide · Part 4 of 5</div>
+</div>
+
+<!-- ============ PART 5 QUALITY ============ -->
+<div class="page">
+  <h2>Part 5 · Quality, bugs &amp; verification story</h2>
+
+  <h3>5.1 The test gate (run after every change)</h3>
+  <div class="flow">1. npx tsc --noEmit          (web · scan-api · scanner-core)
+2. npx vite build
+3. node scripts/e2e.mjs      60 checks:
+     [1] full sandbox scan  (endpoints, tests, BOLA/BFLA/exposure confirmed)
+     [2] redaction sweeps   (no raw JWT / password hashes anywhere)
+     [3] reports            (markdown + html, contain PoC, leak-free)
+     [4] authorization matrix (external refuse/allow, Host-injection blocked,
+                               api-key/bearer/basic/custom header building)
+     [5] template matrix    (4 templates: valid 3.0.3, validator-pass, auth-marked)
+4. node scripts/verify-demo.mjs   live HTTP against a freshly booted server</div>
+
+  <h3>5.2 Real bugs we hit and fixed (the engineering story)</h3>
+  <table>
+    <tr><th>Bug</th><th>Root cause</th><th>Fix & lesson</th></tr>
+    <tr><td>Giant warning triangle filled the viewport</td><td>Inline SVGs had no intrinsic size; inside flex containers they stretched to container size.</td><td>Global CSS cap (15–16 px) on icons inside notices/panels/toasts. <i>Layout bugs can be one missing CSS property — root-cause, don't patch symptoms.</i></td></tr>
+    <tr><td>tsc: "(',', expected)" cascade</td><td>Unquoted hyphenated object keys (<code>arrow-left:</code>) are invalid identifiers; a malformed SVG path compounded it.</td><td>Quote keys; rewrite icon. <i>Dump exact file bytes (JSON.stringify) when grep output looks fine.</i></td></tr>
+    <tr><td>Wizard stepper never advanced</td><td>Compared against scan <i>phases</i> (only exist while running) instead of wizard steps.</td><td>Separate STEPS state for the wizard; phases live only in the monitor. <i>Two state machines must not share one index.</i></td></tr>
+    <tr><td>JSX compile errors in auth form</td><td><code>&lt;div&gt;</code> closed as <code>&lt;/label&gt;</code>; JSON braces inside a JSX attribute.</td><td>Unified tags; <code>placeholder={'{"openapi": …}'}</code> expression. <i>Attributes take JS expressions, not raw JSON.</i></td></tr>
+    <tr><td>Servers died between terminal commands</td><td>Execution sandbox reaped background processes between commands.</td><td>Made verification single-command and self-contained (in-process sandbox). <i>Design tests to not depend on ambient state.</i></td></tr>
+    <tr><td><code>spec:"sandbox"</code> rejected</td><td>Scan route expects spec text or <code>useSandboxSpec:true</code>; a URL is not a spec.</td><td>Fixed usage; documented that spec-URLs go through import-url. <i>Validate the contract between layers — read the route source.</i></td></tr>
+    <tr><td>Engine failed on spec URL</td><td>Engine deliberately accepts text only.</td><td>Fetch-then-parse; Petstore scanned successfully live. <i>Single-responsibility boundaries show up as integration friction.</i></td></tr>
+    <tr><td>Old branding after rename</td><td>Stale process still bound to :8600.</td><td>Killed listener; re-verified health. <i>Check WHICH process answered, not that something answered.</i></td></tr>
+    <tr><td>Workspace links broken after rename</td><td><code>@sentinel/*</code> → <code>@shulker/*</code> invalidated lockfile links.</td><td><code>npm install</code> + full gate re-run. <i>Renames are not text edits — re-link and re-verify.</i></td></tr>
+  </table>
+
+  <h3>5.3 Verification philosophy</h3>
+  <ul>
+    <li><b>Trust nothing ambient</b> — every check boots what it needs and asserts on real output.</li>
+    <li><b>Security claims need sweeps</b> — "redaction works" is a regex sweep over the entire serialized scan result, not a hope.</li>
+    <li><b>Matrix-test the gates</b> — authorization logic is exactly where you test both the allow <i>and</i> the refuse path.</li>
+    <li><b>Green means re-runnable</b> — the whole gate is two commands anyone can run before judging.</li>
+  </ul>
+
+  <div class="box amber"><b class="t">Cheat sheet: 30-second answers for judges</b>
+  <b>Q: Why not just ask an LLM to find vulns?</b> Hallucination — verdicts need proof; AI only prioritizes.<br>
+  <b>Q: Is the scanner dangerous?</b> No — budgets, timeouts, redaction, three consent gates, local-by-default.<br>
+  <b>Q: Why zero dependencies?</b> Supply-chain trust; everything is auditable; SQLite is built into Node.<br>
+  <b>Q: Does it work without AI?</b> Yes — deterministic rules are the default; Gemini is optional acceleration.<br>
+  <b>Q: Real APIs?</b> Yes — external mode with static auth, live-verified on Swagger Petstore.</div>
+  <div class="foot">Shulker · Complete Technical Guide · Part 5 of 5 · Generated September 2026</div>
+</div>
+
+</body>
+</html>
