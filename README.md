@@ -2,6 +2,8 @@
 
 **Find the API vulnerability before the breach headline does.**
 
+**Repository:** https://github.com/Anukaranhiran/amity-hackathon · **Architecture:** [ARCHITECTURE.md](./ARCHITECTURE.md)
+
 Shulker is an AI-assisted, zero-trust API vulnerability scanner built for the
 AmiHacks Track C challenge. It ingests an OpenAPI specification, reasons about
 authorization boundaries, executes **bounded, deterministic security tests** against an
@@ -23,6 +25,8 @@ missing rate limiting are among the most common real-world breach vectors, and e
 tools either fuzz blindly, cost enterprise money, or lack reproducible evidence.
 
 ## Architecture
+
+See **[ARCHITECTURE.md](./ARCHITECTURE.md)** for the full diagram set (high-level layout, 7-phase pipeline, data flow, security invariants) and Mermaid sources in `hackathon/diagrams/`.
 
 ```
 apps/
